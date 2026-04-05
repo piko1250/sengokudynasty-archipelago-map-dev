@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sengoku Dynasty Archipelago Map</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div id="filter-menu-container" style="display: none;">
+        <div class="filter-menu-card">
+            <div id="filter-menu-content"></div>
+        </div>
+    </div>
+
+    <div id="app-footer-container">
+        <div class="app-lang-switch">
+            <button onclick="appLangSwitch('ja')">JP</button>
+            <button onclick="appLangSwitch('en')">EN</button>
+        </div>
+
+        <div class="app-action-container">
+            <button onclick="mapViewReset()" id="app-btn-reset" title="Reset">
+                <span class="material-icons">restart_alt</span>
+            </button>
+            <button id="app-btn-filter" onclick="filterMenuToggle()">
+                <span class="material-icons" title="Filter">tune</span>
+            </button>
+        </div>
+
+        <div class="app-zoom-control">
+            <button onclick="mapViewZoomStep(1)" id="app-btn-zoom-in" title="Zoom In">
+                <span class="material-icons">add</span>
+            </button>
+            <span id="app-zoom-label">100%</span>
+            <button onclick="mapViewZoomStep(-1)" id="app-btn-zoom-out" title="Zoom Out">
+                <span class="material-icons">remove</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="map-view-container">
+        <img src="./images/map-image.png" id="map-view-image" alt="Field Map" draggable="false">
+        <div id="map-marker-layer"></div>
+        <div id="map-popup-layer"></div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="map-logic.js"></script>
+    <script src="filter-logic.js"></script>
+    <script src="popup-logic.js"></script>
+</body>
+</html>
