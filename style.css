@@ -311,6 +311,31 @@ body {
     user-select: none;
 }
 
+/* フィルターメニューの吹き出し（外側のボーダー用） */
+.filter-menu-card::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-top: 10px solid rgba(255, 255, 255, 0.1);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+}
+
+/* フィルターメニューの吹き出し（内側の背景用） */
+.filter-menu-card::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: -1px; /* ボーダー分だけ上に重ねる */
+    border-top: 10px solid rgba(25, 25, 25, 0.98);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+}
+
 .filter-item-label {
     display: flex;
     align-items: center;

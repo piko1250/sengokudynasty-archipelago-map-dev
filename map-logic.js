@@ -15,6 +15,11 @@ let mapTouchLastDist = 0;
 
 let mapFilterActiveSet = new Set(Object.keys(categoryMaster));
 
+// ドラッグ（移動）されたかを外部から判定するための関数
+function mapViewIsMoved() {
+    return mapDragIsMoved;
+}
+
 document.addEventListener('filter-selection-changed', (e) => {
     mapFilterActiveSet = e.detail.selectedSet;
     mapMarkerRender();
