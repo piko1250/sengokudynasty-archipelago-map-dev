@@ -159,6 +159,11 @@ function mapAppInit() {
         img.onload = mapViewCenter;
     }
 
+    // 全域でのコンテキストメニュー（右クリック・長押しメニュー）を禁止
+    window.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+    }, false);
+
     // マウス操作
     window.addEventListener('mousedown', (e) => {
         if (e.button !== 0) return;

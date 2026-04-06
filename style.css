@@ -11,6 +11,11 @@ body {
     font-family: sans-serif;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+
+    /* 長押しによるコンテキストメニューとテキスト選択を無効化 */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 /* --- 地図本体の制御 --- */
@@ -214,6 +219,8 @@ body {
     align-items: center;
     gap: 12px;
     padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+    /* テキスト選択を確実に防止 */
+    user-select: none;
 }
 
 .app-lang-switch {
@@ -231,6 +238,7 @@ body {
     background-color: transparent;
     border: none;
     cursor: pointer;
+    user-select: none;
 }
 
 .app-lang-switch button.active {
@@ -255,6 +263,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    user-select: none;
 }
 
 .app-zoom-control {
@@ -272,6 +281,7 @@ body {
     font-weight: bold;
     min-width: 40px;
     text-align: center;
+    user-select: none;
 }
 
 /* --- フィルターメニュー --- */
@@ -298,6 +308,7 @@ body {
     width: 220px;
     pointer-events: auto;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    user-select: none;
 }
 
 .filter-item-label {
@@ -308,6 +319,7 @@ body {
     color: #ccc;
     font-size: 13px;
     cursor: pointer;
+    user-select: none;
 }
 
 .filter-item-label input {
