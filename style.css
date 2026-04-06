@@ -55,14 +55,148 @@ body {
     z-index: 10;
     pointer-events: auto;
     transition: transform 0.1s ease-out;
+}
+
+/* 選択時の薄い背景色演出 */
+.map-marker-item::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background-color: var(--active-color);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: width 0.2s, height 0.2s, opacity 0.2s;
+    z-index: -1;
+}
+
+.map-marker-item.active-marker::before {
+    width: 54px;
+    height: 54px;
+    opacity: 0.25;
+}
+
+.map-marker-item img {
+    width: 100%;
+    height: 100%;
+    display: block;
     -webkit-user-drag: none;
 }
 
+/* ホバー時のツールチップ（名前） */
+.map-marker-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    background: rgba(20, 20, 20, 0.95);
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    white-space: nowrap;
+    pointer-events: none;
+    display: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 110;
+}
+
+/* PC: ホバーで名前を表示 */
 @media (hover: hover) {
     .map-marker-item:hover {
-        transform: translate(-50%, -50%) scale(1.2);
-        z-index: 100;
+        transform: translate(-50%, -50%) scale(1.15);
+        z-index: 105;
     }
+    .map-marker-item:hover .map-marker-tooltip {
+        display: block;
+    }
+}
+
+/* 【重要】重なり回避ロジック
+   詳細ポップアップ（active-marker）が表示されているときは、
+   背後のツールチップを非表示にしてポップアップの可読性を優先する
+*/
+.map-marker-item.active-marker .map-marker-tooltip {
+    display: none !important;
+}
+
+.map-marker-item.active-marker img {
+    filter: drop-shadow(0 0 6px var(--active-color));
+}
+
+/* --- ポップアップカード --- */
+#map-popup-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 200;
+}
+
+.popup-card {
+    position: absolute;
+    background: rgba(30, 30, 30, 0.98);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 198, 49, 0.6);
+    border-radius: 12px;
+    padding: 16px;
+    color: #eee;
+    pointer-events: auto;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.8);
+    animation: popupFloatIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform: translate(-50%, -100%);
+    margin-top: -28px; /* ピンの少し上から表示 */
+    min-width: 260px;
+    max-width: 88vw;
+    box-sizing: border-box;
+}
+
+@keyframes popupFloatIn {
+    from { opacity: 0; transform: translate(-50%, -95%); }
+    to { opacity: 1; transform: translate(-50%, -100%); }
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.popup-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #FFC631;
+}
+
+.popup-category-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #fff;
+    white-space: nowrap;
+    text-transform: uppercase;
+}
+
+.popup-body {
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #FFC631 transparent;
 }
 
 /* --- 管理用フッターエリア --- */
@@ -72,98 +206,63 @@ body {
     left: 0;
     width: 100%;
     z-index: 2000;
-    background: rgba(20, 20, 20, 0.85);
-    backdrop-filter: blur(8px);
+    background: rgba(15, 15, 15, 0.95);
+    backdrop-filter: blur(10px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 16px;
-    padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px));
-    touch-action: none;
+    gap: 12px;
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
 }
 
 .app-lang-switch {
     display: flex;
-    background-color: #333;
+    background-color: #2a2a2a;
     border-radius: 6px;
     border: 1px solid #444;
-    overflow: hidden;
 }
 
 .app-lang-switch button {
     padding: 6px 12px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
     color: #888;
     background-color: transparent;
     border: none;
     cursor: pointer;
-    transition: all 0.2s;
-    min-width: 45px;
-}
-
-.app-lang-switch button:first-child {
-    border-right: 1px solid #444;
 }
 
 .app-lang-switch button.active {
-    color: #111;
+    color: #000;
     background-color: #FFC631;
+    border-radius: 4px;
 }
 
 .app-action-container {
     display: flex;
     gap: 8px;
-    align-items: center;
 }
 
 #app-btn-filter, #app-btn-reset, .app-zoom-control button {
-    min-width: 45px;
-    height: 32px;
+    width: 42px;
+    height: 36px;
     background-color: #FFC631;
     color: #111;
-    border: 1px solid #FFC631;
+    border: none;
     border-radius: 6px;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-@media (hover: hover) {
-    #app-btn-filter:hover, #app-btn-reset:hover, .app-zoom-control button:hover {
-        background-color: #FFFF00;
-        color: #111;
-    }
-}
-
-#app-btn-filter:active, #app-btn-reset:active, .app-zoom-control button:active {
-    background-color: #FFCC00;
-    transform: translateY(2px);
-}
-
-/* フィルタメニュー展開時のアクティブスタイル */
-#app-btn-filter.active-filter {
-    background-color: #FFFFFF;
-    color: #111;
-    border-color: #FFFFFF;
-}
-
-@media (hover: hover) {
-    #app-btn-filter.active-filter:hover {
-        background-color: #F0F0F0;
-        border-color: #F0F0F0;
-    }
 }
 
 .app-zoom-control {
     display: flex;
     align-items: center;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 2px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 2px 6px;
     gap: 4px;
 }
 
@@ -171,14 +270,8 @@ body {
     color: #FFC631;
     font-size: 12px;
     font-weight: bold;
-    min-width: 42px;
+    min-width: 40px;
     text-align: center;
-    user-select: none;
-}
-
-.app-zoom-control button {
-    min-width: 32px;
-    height: 28px;
 }
 
 /* --- フィルターメニュー --- */
@@ -194,155 +287,37 @@ body {
 
 .filter-menu-card {
     position: absolute;
-    bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(33, 33, 33, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(96, 96, 96, 0.7);
+    background: rgba(25, 25, 25, 0.98);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 12px 16px;
+    padding: 12px;
     width: 220px;
-    box-sizing: border-box;
     pointer-events: auto;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    animation: slideUp 0.15s ease-out;
-}
-
-.filter-menu-card::after {
-    content: "";
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid rgba(96, 96, 96, 0.7);
-}
-
-.filter-menu-card::before {
-    content: "";
-    position: absolute;
-    bottom: -7px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid rgba(33, 33, 33, 0.95);
-    z-index: 1;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .filter-item-label {
     display: flex;
     align-items: center;
-    padding: 8px 0;
-    color: #ddd;
+    gap: 10px;
+    padding: 8px 4px;
+    color: #ccc;
+    font-size: 13px;
     cursor: pointer;
-    font-size: 14px;
 }
 
 .filter-item-label input {
-    margin-right: 12px;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     accent-color: #FFC631;
-}
-
-.filter-item-all {
-    color: #ddd;
-    font-weight: bold;
 }
 
 .filter-separator {
     height: 1px;
-    background-color: rgba(255, 255, 255, 0.1);
-    margin: 4px 0 8px 0;
-}
-
-#app-btn-filter .material-icons,
-#app-btn-reset .material-icons,
-#filter-menu-container .material-icons,
-.app-zoom-control .material-icons {
-    font-size: 20px;
-}
-
-@keyframes slideUp {
-    from { transform: translate(-50%, 10px); opacity: 0; }
-    to { transform: translate(-50%, 0); opacity: 1; }
-}
-
-/* --- ポップアップ --- */
-#map-popup-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 200;
-}
-
-.popup-card {
-    position: absolute;
-    background: rgba(33, 33, 33, 0.85);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 198, 49, 0.4);
-    border-radius: 12px;
-    padding: 18px;
-    color: #ddd;
-    pointer-events: auto;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
-    animation: popupFloatIn 0.2s ease-out;
-    transform: translate(-50%, -100%);
-    margin-top: -24px;
-    min-width: 280px;
-    width: max-content;
-    max-width: 530px;
-    box-sizing: border-box;
-}
-
-.popup-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.popup-title {
-    font-weight: bold;
-    color: #FFC631;
-    font-size: 19px;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-}
-
-.popup-category-badge {
-    font-size: 12px;
-    padding: 3px 10px;
-    border-radius: 4px;
-    color: #fff;
-    font-weight: bold;
-    white-space: nowrap;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.popup-body {
-    font-size: 16px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    color: #ececec;
-}
-
-@keyframes popupFloatIn {
-    from {
-        transform: translate(-50%, -100%) translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translate(-50%, -100%) translateY(0);
-        opacity: 1;
-    }
+    background: rgba(255, 255, 255, 0.1);
+    margin: 6px 0;
 }

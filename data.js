@@ -28,27 +28,27 @@ let categoryMaster = {
     "special_project": {
         ja: "特殊建造物",
         en: "Special Projects",
-        color: "#D35400"
+        color: "#2E7D32"
     },
     "shrine": {
         ja: "神社",
         en: "Shrines",
-        color: "#E91E63"
+        color: "#D81B60"
     },
     "ft": {
         ja: "ファストトラベル",
         en: "FastTravel",
-        color: "#2196F3"
+        color: "#0288D1"
     },
     "enemy": {
         ja: "敵陣",
         en: "Enemy Camp",
-        color: "#C91D11"
+        color: "#B71C1C"
     },
     "other": {
         ja: "その他",
         en: "Other",
-        color: "#9E9E9E"
+        color: "#546E7A"
     }
 };
 

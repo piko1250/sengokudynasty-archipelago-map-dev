@@ -23,7 +23,18 @@ document.addEventListener('popup-open', (e) => {
         return;
     }
 
+    // 既存のピンの選択状態を解除
+    if (popupCurrentPoint && popupCurrentPoint.domElement) {
+        popupCurrentPoint.domElement.classList.remove('active-marker');
+    }
+
     popupCurrentPoint = newPoint;
+
+    // 新しいピンを選択状態にする
+    if (popupCurrentPoint.domElement) {
+        popupCurrentPoint.domElement.classList.add('active-marker');
+    }
+
     popupZIndexBase++;
     popupRender(popupCurrentPoint);
 });
@@ -91,6 +102,11 @@ function popupRender(point) {
 }
 
 function popupClose() {
+    // 選択状態を解除
+    if (popupCurrentPoint && popupCurrentPoint.domElement) {
+        popupCurrentPoint.domElement.classList.remove('active-marker');
+    }
+
     const layer = document.getElementById('map-popup-layer');
     if (layer) {
         layer.innerHTML = '';

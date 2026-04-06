@@ -7,6 +7,10 @@ let mapDragIsDragging = false;
 let mapDragIsMoved = false;
 let mapDragStartX = 0;
 let mapDragStartY = 0;
+let mapDragStartScreenX = 0;
+let mapDragStartScreenY = 0;
+const mapDragMoveThreshold = 6; // 6px以上の移動でドラッグ判定（スマホの震えを許容）
+
 let mapTouchLastDist = 0;
 
 let mapFilterActiveSet = new Set(Object.keys(categoryMaster));
@@ -73,17 +77,34 @@ function mapMarkerRender() {
             return;
         }
 
-        const marker = document.createElement('img');
+        const markerWrapper = document.createElement('div');
+        markerWrapper.className = 'map-marker-item';
+        markerWrapper.style.left = `${point.x}px`;
+        markerWrapper.style.top = `${point.y}px`;
+
+        const catColor = categoryMaster[point.category] ? categoryMaster[point.category].color : '#FFC631';
+        markerWrapper.style.setProperty('--active-color', catColor);
+
+        // 既に選択中かチェック
+        if (typeof popupCurrentPoint !== 'undefined' && popupCurrentPoint === point) {
+            markerWrapper.classList.add('active-marker');
+        }
+
+        const markerImg = document.createElement('img');
         const iconName = point.type ? `icon_${point.type}.png` : 'icon_unknown.png';
-        marker.src = `./images/${iconName}`;
-        marker.className = 'map-marker-item';
-        marker.style.left = `${point.x}px`;
-        marker.style.top = `${point.y}px`;
+        markerImg.src = `./images/${iconName}`;
+        markerImg.draggable = false;
 
-        marker.title = point.name[mapLangCurrent];
-        marker.draggable = false;
+        const tooltip = document.createElement('span');
+        tooltip.className = 'map-marker-tooltip';
+        tooltip.textContent = point.name[mapLangCurrent];
 
-        marker.addEventListener('click', (e) => {
+        markerWrapper.appendChild(markerImg);
+        markerWrapper.appendChild(tooltip);
+
+        point.domElement = markerWrapper;
+
+        markerWrapper.addEventListener('click', (e) => {
             if (mapDragIsMoved) return;
             e.stopPropagation();
 
@@ -92,22 +113,21 @@ function mapMarkerRender() {
             }));
         });
 
-        markerLayer.appendChild(marker);
+        markerLayer.appendChild(markerWrapper);
     });
 }
 
 function mapViewZoomStep(direction) {
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
-    const factor = direction > 0 ? 1.2 : 0.8;
+    const factor = direction > 0 ? 1.25 : 0.8;
     mapViewZoomByFactor(factor, centerX, centerY);
 }
 
 function mapViewZoomByFactor(factor, clientX, clientY) {
     const oldScale = mapScaleCurrent;
     let nextScale = mapScaleCurrent * factor;
-    nextScale = Math.min(Math.max(nextScale, 0.20), 3.0);
-
+    nextScale = Math.min(Math.max(nextScale, 0.15), 4.0);
     const actualFactor = nextScale / oldScale;
 
     mapTransX = clientX - (clientX - mapTransX) * actualFactor;
@@ -125,48 +145,39 @@ function mapViewZoom(delta, clientX, clientY) {
 function mapViewUpdateTransform() {
     const container = document.getElementById('map-view-container');
     container.style.transform = `translate3d(${mapTransX}px, ${mapTransY}px, 0) scale(${mapScaleCurrent})`;
-
     const label = document.getElementById('app-zoom-label');
     if (label) {
         label.textContent = `${Math.round(mapScaleCurrent * 100)}%`;
     }
 }
 
-function mapViewIsMoved() {
-    return mapDragIsMoved;
-}
-
 function mapAppInit() {
     const img = document.getElementById('map-view-image');
-
     if (img.complete) {
         mapViewCenter();
     } else {
         img.onload = mapViewCenter;
     }
 
-    appLangUpdateBtn();
-    mapMarkerRender();
-
-    window.addEventListener('wheel', (e) => {
-        if (e.ctrlKey) e.preventDefault();
-        const delta = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-        mapViewZoomByFactor(delta, e.clientX, e.clientY);
-    }, { passive: false });
-
+    // マウス操作
     window.addEventListener('mousedown', (e) => {
         if (e.button !== 0) return;
-        if (e.target.closest('#app-footer-container') || e.target.closest('.filter-menu-card')) return;
-
         mapDragIsDragging = true;
         mapDragIsMoved = false;
         mapDragStartX = e.clientX - mapTransX;
         mapDragStartY = e.clientY - mapTransY;
+        mapDragStartScreenX = e.clientX;
+        mapDragStartScreenY = e.clientY;
     });
 
     window.addEventListener('mousemove', (e) => {
         if (!mapDragIsDragging) return;
-        mapDragIsMoved = true;
+
+        const dist = Math.hypot(e.clientX - mapDragStartScreenX, e.clientY - mapDragStartScreenY);
+        if (dist > mapDragMoveThreshold) {
+            mapDragIsMoved = true;
+        }
+
         mapTransX = e.clientX - mapDragStartX;
         mapTransY = e.clientY - mapDragStartY;
         mapViewUpdateTransform();
@@ -176,16 +187,19 @@ function mapAppInit() {
         mapDragIsDragging = false;
     });
 
+    window.addEventListener('wheel', (e) => {
+        mapViewZoom(-e.deltaY, e.clientX, e.clientY);
+    }, { passive: false });
+
+    // タッチ操作
     window.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
-            if (e.target.closest('#app-footer-container') || e.target.closest('.filter-menu-card')) {
-                mapDragIsDragging = false;
-                return;
-            }
             mapDragIsDragging = true;
             mapDragIsMoved = false;
             mapDragStartX = e.touches[0].clientX - mapTransX;
             mapDragStartY = e.touches[0].clientY - mapTransY;
+            mapDragStartScreenX = e.touches[0].clientX;
+            mapDragStartScreenY = e.touches[0].clientY;
         } else if (e.touches.length === 2) {
             mapDragIsDragging = false;
             mapTouchLastDist = Math.hypot(
@@ -197,13 +211,15 @@ function mapAppInit() {
 
     window.addEventListener('touchmove', (e) => {
         if (e.touches.length === 1 && mapDragIsDragging) {
-            mapDragIsMoved = true;
+            const dist = Math.hypot(e.touches[0].clientX - mapDragStartScreenX, e.touches[0].clientY - mapDragStartScreenY);
+            if (dist > mapDragMoveThreshold) {
+                mapDragIsMoved = true;
+            }
             mapTransX = e.touches[0].clientX - mapDragStartX;
             mapTransY = e.touches[0].clientY - mapDragStartY;
             mapViewUpdateTransform();
         } else if (e.touches.length === 2) {
             e.preventDefault();
-
             const dist = Math.hypot(
                 e.touches[0].clientX - e.touches[1].clientX,
                 e.touches[0].clientY - e.touches[1].clientY
@@ -219,10 +235,13 @@ function mapAppInit() {
         }
     }, { passive: false });
 
-    window.addEventListener('touchend', (e) => {
+    window.addEventListener('touchend', () => {
         mapDragIsDragging = false;
         mapTouchLastDist = 0;
     });
+
+    appLangUpdateBtn();
+    mapMarkerRender();
 }
 
-window.onload = mapAppInit;
+window.addEventListener('DOMContentLoaded', mapAppInit);
